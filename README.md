@@ -122,6 +122,77 @@ Experimenter and ISP are both capable of logging errors to a web service called 
 
 It's fine to use the same project/DSN for both ISP and experimenter.
 
+## Process!
+
+
+* Fetch and init repo; build docker images
+  * `git clone git@github.com:CenterForOpenScience/isp-deploy.git`
+  * `cd isp-deploy`
+  * `git submodule init`
+  * `git submodule update`
+  * `for i in "isp", "experimenter", "jamdb"; do pushd $i; docker build -t $i:develop .; popd; done;`
+* Configure, run, setup jamdb
+  * Set `OSF.{URL,API\_URL,ACCOUNTS\_URL}` in `config/jamdb/jam/settings/local.yml` config vars to auth provider.
+  * `cp config/jamdb/jam/settings/local.yml jamdb/jam/settings/`
+  * `docker-compose up -d jamdb` - Start jamdb service
+  * `docker-compose log jamdb` - check jamdb logs to make sure it started correctly.
+  * `docker exec -it isp\_deploy\_jamdb_1 /bin/bash` - open a shell in the jamdb container
+    * `jam token system-system-system` - generates a token for initializing jam.  copy & paste this value into `config/jam-setup/config/local.yml` into the `JAM\_TOKEN` setting for the desired environment.
+    * exit container (\^C)
+  * `cp config/jam-setup/config/local.yml jam-setup/config/`
+  * `docker-compose up jam-setup`
+* Configure, run, setup experimenter
+  * Set experimenter configuration variables in `config/experimenter/.env`:
+    * MANDATORY: set `OSF\_CLIENT\_ID`
+    * OPTIONAL: update `OSF\_URL` and `OSF\_AUTH\_URL` if not using OSF for auth.
+    * MANDATORY: set `JAMDB\_URL` to point to jamdb instance. Default value is for local development.
+    * MANDATORY: set `SENTRY\_DSN` to point to the experimenter sentry project.
+  * `cp config/experimenter/.env experimenter/`
+  * `docker-compose up -d experimenter` - Start experimenter service
+  * `docker-compose log experimenter` - check experimenter logs to make sure it started correctly.
+  * Go to `http://localhost:4210/` or the configured experimenter url in a browser.
+  * Login as the designated superuser via the OSF auth provider.
+  * Select the `isp` namespace.
+  * Create a new experimen named "ISP".
+  * Set the schema to:
+````
+{
+    "frames": {
+        "card-sort": {
+            "kind": "exp-card-sort"
+        },
+        "rating-form": {
+            "kind": "exp-rating-form"
+        },
+        "overview": {
+            "kind": "exp-overview"
+        },
+        "free-response": {
+            "kind": "exp-free-response"
+        },
+        "thank-you": {
+            "kind": "exp-thank-you"
+        }
+    },
+    "sequence": [
+        "overview",
+        "free-response",
+        "card-sort",
+        "rating-form",
+        "thank-you"
+    ]
+}
+````
+    * click the "save" button
+    * go back to experiment page, click start experiment
+    * note the experiment id in the url
+    * update isp/.env, use this value as EXPERIMENT_ID
+    * start ISP
+    * In experimenter, create new participants
+    * 
+
+
+
 
 ## Service configuration
 
