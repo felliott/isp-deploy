@@ -1,0 +1,99 @@
+version: '3.4'
+
+volumes:
+  jam_config_vol:
+    external: false
+  mongo_data_vol:
+    external: false
+  elasticsearch_data_vol:
+    external: false
+
+
+services:
+
+  isp:
+    build: ./isp/
+    image: isp:develop
+    env_file:
+      - ./isp/.env
+    # volumes:
+    #   - './isp:/code'
+    command: ./node_modules/.bin/ember s
+    ports:
+      - target: 4200
+        published: 4213
+        protocol: tcp
+        mode: host
+    depends_on:
+      - experimenter
+
+  experimenter:
+    build: ./experimenter/
+    image: experimenter:develop
+    env_file:
+      - ./experimenter/.env
+    # volumes:
+    #   - './experimenter:/code'
+    command: ./node_modules/.bin/ember s
+    ports:
+      - target: 4200
+        published: 4212
+        protocol: tcp
+        mode: host
+    depends_on:
+      - jam_setup
+
+  jam_setup:
+    build: ./jam-setup/
+    image: jam_setup:develop
+    volumes:
+      - 'jam_config_vol:/etc/jam'
+    env_file:
+      - ./experimenter/.env
+    depends_on:
+      - jamdb
+
+  jamdb:
+    build: ./jamdb/
+    image: jamdb:develop
+    volumes:
+      - 'jam_config_vol:/etc/jam'
+    ports:
+      - target: 1212
+        published: 4211
+        protocol: tcp
+        mode: host
+    depends_on:
+      - mongo
+      - elasticsearch
+
+
+  ###################
+  # Shared Services #
+  ###################
+
+  elasticsearch:
+    image: elasticsearch:2
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch_data_vol:/usr/share/elasticsearch/data
+    stdin_open: true
+
+  mongo:
+    image: mongo:3.4
+    command:
+      - /bin/bash
+      - -c
+      - openssl req -newkey rsa:2048 -new -x509 -days 9999 -nodes
+          -subj "/C=US/ST=Virginia/L=Charlottesville/O=COS/OU=Test/CN=192.168.168.167"
+          -out /etc/ssl/mongodb.crt -keyout /etc/ssl/mongodb.key &&
+        cat /etc/ssl/mongodb.key /etc/ssl/mongodb.crt > /etc/ssl/mongodb.pem &&
+        chown -R mongodb:mongodb /etc/ssl /data/db &&
+        chmod -R 0600 /etc/ssl/* &&
+        gosu mongodb mongod
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data_vol:/data/db
+    stdin_open: true
