@@ -6,3 +6,7 @@
 	path = experimenter
 	url = git@github.com:felliott/experimenter.git
 	branch = feature/isp-deploy
+[submodule "isp"]
+	path = isp
+	url = git@github.com:felliott/isp.git
+	branch = feature/isp-deploy
