@@ -1,0 +1,4 @@
+[submodule "jamdb"]
+	path = jamdb
+	url = git@github.com:felliott/jamdb.git
+	branch = feature/isp-deploy
