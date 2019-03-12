@@ -2,3 +2,7 @@
 	path = jamdb
 	url = git@github.com:felliott/jamdb.git
 	branch = feature/isp-deploy
+[submodule "experimenter"]
+	path = experimenter
+	url = git@github.com:felliott/experimenter.git
+	branch = feature/isp-deploy
