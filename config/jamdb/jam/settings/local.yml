@@ -1,0 +1,50 @@
+# DEBUG: false
+
+# # SERVER SETTINGS
+# FORK: false  # Maybe true, false or intger
+# PORT: 1212
+# HOST: 0.0.0.0
+# XHEADERS: False
+# SENTRY_DSN: null
+
+
+# # SQLITE_URI: sqlite://jam.db
+# SQLITE_URI: jam.db
+
+# EPHEMERAL:
+#   USE: true
+
+# MONGO:
+#   USE: true
+#   DATABASE_NAME: jam
+#   TIMEOUT: 30
+#   URI: mongodb://192.168.168.167:27017/
+
+# ELASTICSEARCH:
+#   USE: true
+#   TIMEOUT: 30
+#   URI: https://192.168.168.167:9200/
+
+# NAMESPACE_BACKENDS:
+#   state: mongo
+#   logger: mongo
+#   storage: mongo
+
+# NAMESPACEMANAGER_BACKENDS:
+#   state: mongo
+#   logger: mongo
+#   storage: mongo
+
+# COLLECTION_BACKENDS:
+#   state: elasticsearch
+#   logger: mongo
+#   storage: mongo
+
+# JWT_SECRET: TestKey
+
+# MAX_PAGE_SIZE: 500
+
+# OSF:
+#   URL: https://staging.osf.io
+#   API_URL: https://api.staging.osf.io
+#   ACCOUNTS_URL: https://accounts.staging.osf.io
