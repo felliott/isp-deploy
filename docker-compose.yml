@@ -1,8 +1,6 @@
 version: '3.4'
 
 volumes:
-  jam_config_vol:
-    external: false
   mongo_data_vol:
     external: false
   elasticsearch_data_vol:
@@ -40,24 +38,16 @@ services:
         published: 4212
         protocol: tcp
         mode: host
-    # depends_on:
-    #   - jam_setup
 
-  # jam_setup:
-  #   build: ./jam-setup/
-  #   image: jam_setup:develop
-  #   volumes:
-  #     - 'jam_config_vol:/etc/jam'
-  #   env_file:
-  #     - ./experimenter/.env
-  #   depends_on:
-  #     - jamdb
+  jam_setup:
+    build: ./jam-setup/
+    image: jam_setup:develop
+    depends_on:
+      - jamdb
 
   jamdb:
     build: ./jamdb/
     image: jamdb:develop
-    volumes:
-      - 'jam_config_vol:/etc/jam'
     ports:
       - target: 1212
         published: 4211
