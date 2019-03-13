@@ -75,7 +75,7 @@ Translations are stored in the [`/app/locales/`](https://github.com/CenterForOpe
 
 # Setting up ISP / Experimenter / Jam
 
-The quickest way to set up the environment is to run the install.sh script provided in the [Common Development Environment](https://github.com/felliott/cde) repo.  This script will:
+The quickest way to set up the environment is to run the install.sh script provided in the [isp-deploy](https://github.com/felliott/isp-deploy) repo.  This script will:
 
 1. checkout the submodules for the constituent projects
 2. build docker images for each project
@@ -124,16 +124,21 @@ It's fine to use the same project/DSN for both ISP and experimenter.
 
 ## Process!
 
-
-* Fetch and init repo; build docker images
+* Fetch and initialize repo; build docker images
   * `git clone git@github.com:CenterForOpenScience/isp-deploy.git`
   * `cd isp-deploy`
   * `git submodule init`
   * `git submodule update`
-  * `for i in "isp", "experimenter", "jamdb"; do pushd $i; docker build -t $i:develop .; popd; done;`
+
 * Configure, run, setup jamdb
-  * Set `OSF.{URL,API\_URL,ACCOUNTS\_URL}` in `config/jamdb/jam/settings/local.yml` config vars to auth provider.
+  * Configure jamdb configuration variables in `config/jamdb/jam/settings/local.yml`:
+    * OPTIONAL: set `SENTRY_DSN` to poin to jamdb sentry project
+    * If using production OSF for authentication:
+      * MANDATORY: set `OSF.OSF_URL` to `https://osf.io`
+      * MANDATORY: set `OSF.OSF_API_URL` to `https://api.osf.io`
+      * MANDATORY: set `OSF.OSF_ACCOUNTS_URL` to `https://accounts.osf.io`
   * `cp config/jamdb/jam/settings/local.yml jamdb/jam/settings/`
+  * `pushd jamdb; docker build -t jamdb:develop .; popd;`
   * `docker-compose up -d jamdb` - Start jamdb service
   * `docker-compose log jamdb` - check jamdb logs to make sure it started correctly.
   * `docker exec -it isp\_deploy\_jamdb_1 /bin/bash` - open a shell in the jamdb container
@@ -141,20 +146,23 @@ It's fine to use the same project/DSN for both ISP and experimenter.
     * exit container (\^C)
   * `cp config/jam-setup/config/local.yml jam-setup/config/`
   * `docker-compose up jam-setup`
+
 * Configure, run, setup experimenter
   * Set experimenter configuration variables in `config/experimenter/.env`:
     * MANDATORY: set `OSF\_CLIENT\_ID`
     * OPTIONAL: update `OSF\_URL` and `OSF\_AUTH\_URL` if not using OSF for auth.
     * MANDATORY: set `JAMDB\_URL` to point to jamdb instance. Default value is for local development.
-    * MANDATORY: set `SENTRY\_DSN` to point to the experimenter sentry project.
+    * OPTIONAL: set `SENTRY\_DSN` to point to the experimenter sentry project.
   * `cp config/experimenter/.env experimenter/`
+  * `pushd experimenter; docker build -t experimenter:develop .; popd;`
   * `docker-compose up -d experimenter` - Start experimenter service
   * `docker-compose log experimenter` - check experimenter logs to make sure it started correctly.
-  * Go to `http://localhost:4210/` or the configured experimenter url in a browser.
+  * Go to `http://localhost:4212/` or the configured experimenter url in a browser.
   * Login as the designated superuser via the OSF auth provider.
   * Select the `isp` namespace.
-  * Create a new experimen named "ISP".
+  * Create a new experiment named "ISP".
   * Set the schema to:
+
 ````
 {
     "frames": {
@@ -183,15 +191,25 @@ It's fine to use the same project/DSN for both ISP and experimenter.
     ]
 }
 ````
+
     * click the "save" button
     * go back to experiment page, click start experiment
     * note the experiment id in the url
-    * update isp/.env, use this value as EXPERIMENT_ID
-    * start ISP
-    * In experimenter, create new participants
-    * 
 
+* Configure, run, setup ISP:
+  * Set ISP configuration variables in `config/isp/.env`:
+    * MANDATORY: set `EXPERIMENT\_ID`: this should be the experiment id noted above.
+    * MANDATORY: update `USE\_UNRELEASED\_TRANSLATIONS` to `true` if the environment is *not* production.
+    * MANDATORY: set `JAMDB\_URL` to point to jamdb instance. Default value is for local development.
+    * OPTIONAL: set `SENTRY\_DSN` to point to the experimenter sentry project.
+  * `cp config/isp/.env isp/`
+  * `pushd isp; docker build -t isp:develop .; popd;`
+  * `docker-compose up -d isp` - Start ISP service
+  * `docker-compose log isp` - check ISP logs to make sure it started correctly.
+  * Go to `http://localhost:4213/` or the configured ISP url in a browser.
 
+* Running the experiment:
+  * In experimenter, create new participants
 
 
 ## Service configuration
