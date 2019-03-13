@@ -136,7 +136,7 @@ It's fine to use the same project/DSN for both ISP and experimenter.
 
 * Configure, run, setup jamdb
   * Set jamdb configuration variables in `jamdb/jam/settings/local.yml`:
-    * OPTIONAL: set `SENTRY_DSN` to poin to jamdb sentry project
+    * OPTIONAL: set `SENTRY_DSN` to point to jamdb sentry project
     * If using production OSF for authentication:
       * MANDATORY: set `OSF.OSF_URL` to `https://osf.io`
       * MANDATORY: set `OSF.OSF_API_URL` to `https://api.osf.io`
@@ -145,7 +145,7 @@ It's fine to use the same project/DSN for both ISP and experimenter.
   * `docker-compose up -d jamdb` - Start jamdb service
   * `docker-compose logs -f --tail 1000 jamdb` - check jamdb logs to make sure it started correctly. Exit with `^C`.
   * `docker exec -it isp-deploy_jamdb_1 /bin/bash` - open a shell in the jamdb container
-    * `jam token system-system-system` - generates a token for initializing jam.  copy & paste this value into `config/jam-setup/config/local.yml` into the `JAM_TOKEN` setting for the desired environment.
+    * `jam token system-system-system` - generates a token for initializing jam.  copy & paste this value into `jam-setup/config/local.yml` into the `JAM_TOKEN` envvar.
     * `exit` - exit container and return to host shell
 
 * Run jam-setup to initialize jam for experimenter/isp:
