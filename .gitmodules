@@ -10,3 +10,7 @@
 	path = isp
 	url = git@github.com:felliott/isp.git
 	branch = feature/isp-deploy
+[submodule "jam-setup"]
+	path = jam-setup
+	url = git@github.com:felliott/jam-setup.git
+	branch = feature/isp-deploy
