@@ -1,5 +1,5 @@
 COLLECTIONS_PATH: ./collections.js
 NAMESPACE: isp
 JAM_TOKEN: CHANGEME
-JAM_URL: https://localhost:1212
+JAM_URL: http://localhost:1212
 ADMIN_GUID: CHANGME
