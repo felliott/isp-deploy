@@ -1,9 +1,5 @@
-stage:
-  JAM_TOKEN: CHANGEME
-  JAM_URL: https://staging-metadata.osf.io
-  COLLECTIONS_PATH: ./collections.js
-
-prod:
-  JAM_TOKEN: CHANGEME
-  JAM_URL: https://metadata.osf.io
-  COLLECTIONS_PATH: ./collections.js
+COLLECTIONS_PATH: ./collections.js
+NAMESPACE: isp
+JAM_TOKEN: CHANGEME
+JAM_URL: https://localhost:1212
+ADMIN_GUID: CHANGME
