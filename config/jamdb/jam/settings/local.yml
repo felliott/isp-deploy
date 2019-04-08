@@ -1,3 +1,5 @@
+## At least one value must be uncommented for jam to start.
+
 # DEBUG: false
 
 # # SERVER SETTINGS
@@ -44,7 +46,7 @@
 
 # MAX_PAGE_SIZE: 500
 
-# OSF:
-#   URL: https://staging.osf.io
-#   API_URL: https://api.staging.osf.io
-#   ACCOUNTS_URL: https://accounts.staging.osf.io
+OSF:
+  URL: https://staging.osf.io
+  API_URL: https://api.staging.osf.io
+  ACCOUNTS_URL: https://accounts.staging.osf.io
