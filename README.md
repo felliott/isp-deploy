@@ -39,7 +39,12 @@ ISP has two environments, `staging` and `production`.  `staging` is updated when
     * ISP: https://ispstudy.net/
     * Experimenter: https://experimenter.osf.io/
 
-## Getting started tasks
+
+# Developing locally
+
+The following instructions are for those who are adding new translations or consent forms.
+
+## Getting started tasks for local development
 
 1. Clone the ISP repo, and follow the instructions in the README.MD to get it set up for local development.
 
@@ -73,7 +78,10 @@ Consent forms are keyed by study ID and ignore the user's selected language.  If
 
 Translations are stored in the [`/app/locales/`](https://github.com/CenterForOpenScience/isp/tree/develop/app/locales) folder of the ISP repo under a two- or four- letter language code.  The language-specific subdirectories may also include a `config.js` file for overriding i18n functionality provided by ember-18n.  Right-to-left (RTL) language support and pluralization options can be set here.
 
-# Setting up ISP / Experimenter / Jam
+
+# Deploying
+
+The following instructions are for setting up a full ISP + Experimenter + JamDB deployment.  You will need to install [docker](https://www.docker.com/products/docker-desktop) and [docker-compose](https://docs.docker.com/compose/install/) on the host system.
 
 The general process for setting up ISP will be, for each constituent project:
 
@@ -165,8 +173,13 @@ $ docker-compose logs -f --tail 1000 jamdb
 
 # open a shell in the jamdb container
 $ docker exec -it isp-deploy_jamdb_1 /bin/bash
-    * `jam token system-system-system` - generates a token for initializing jam.  copy & paste this value into `jam-setup/config/local.yml` into the `JAM_TOKEN` envvar.
-    * `exit` - exit container and return to host shell
+
+# Generate a token for initializing jam.  Note this value, it will be needed
+# to configure `jam-setup` in the next step.
+$ jam token system-system-system
+
+# exit container and return to host shell
+$ exit
 ```
 
 ### 3. Run jam-setup to initialize jam for experimenter/isp
@@ -248,6 +261,13 @@ Once the experimenter service is running (you should see the text "Build success
 ```
 
 Click the "Save" button, then go back to the experiment page, and click "Start Experiment Now". Note the experiment id in the url (it will be final part of the path), this will be needed to configure ISP in the next step.
+
+To give another user the ability to add participants:
+
+1. Click on "Project settings" in the sidebar
+2. Select whether the user should have admin access or read access from the dropdown at the top of the page.
+3. Paste the user's OSF id (from either prod or staging OSF, depending on which was used as the auth provider) into the blank box at the bottom of the page.
+4. Click the green plus sign to add them.
 
 ### 6. Configure and run ISP:
 
