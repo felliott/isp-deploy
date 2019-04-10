@@ -75,16 +75,16 @@ Translations are stored in the [`/app/locales/`](https://github.com/CenterForOpe
 
 # Setting up ISP / Experimenter / Jam
 
-The quickest way to set up the environment is to run the install.sh script provided in the [isp-deploy](https://github.com/felliott/isp-deploy) repo.  This script will:
+The general process for setting up ISP will be, for each constituent project:
 
-_Not really true.  Actually there are a few manual steps to run between the coded steps_
+1. copy over the config file from the `config` directory to the appropriate location
+2. update the config file
+3. build docker image for the project
+4. bring up the docker service
 
-1. checkout the submodules for the constituent projects
-2. build docker images for each project
-3. copy over the config files from the `config` directory to their appropriate locations
-4. bring up the docker services
+## URLs for local development
 
-Before running this script, some configuration decisions must be made, and the template config files should be filled out:
+The instructions below assume that you are setting this up for a local deployment on a single machine.  Sometimes the instructions and config default values will use `http://localhost:<port>` for urls and other times use an explicit IP address, like `http://192.168.168.167:<port>`.  This is because each service container has its own idea of what `localhost` is.  `jamdb`'s `localhost` is distinct from `experimenter`'s.  However, the containers inherit the IP address mapping from the host system. In order for services to talk to each other, they need to communicate over an explicit IP address.  The following instructions follow the OSF's lead and assume `http://192.168.168.167` has been set up on the host system to point to the loopback device.  See [the instructions](https://github.com/CenterForOpenScience/osf.io/blob/19.6.0/README-docker-compose.md) in the OSF repo for how to do this.
 
 ## Authorization
 
@@ -101,9 +101,9 @@ Fill in the following fields:
 
 ```
 App name: "This can be whatever you want"
-Project Homepage URL: <URL where experimenter will be reachable. Ex. http://localhost:4210>
+Project Homepage URL: <URL where experimenter will be reachable. Ex. http://localhost:4212>
 App description: "Whatever you like"
-Authorization Callback URL: <The Project Homepage URL + "/login".  Ex. http://localhost:4210/login>
+Authorization Callback URL: <The Project Homepage URL + "/login".  Ex. http://localhost:4212/login>
 ```
 
 Note the Client ID and Secret.  Copy the Client ID to the `OSF_CLIENT_ID` key in `config/experimenter/.env`.  If you are using Production OSF, the default values for `OSF_URL` and `OSF_AUTH_URL` will suffice.
@@ -147,10 +147,10 @@ $ cp config/isp/.env isp/.env
 Set jamdb configuration variables in `jamdb/jam/settings/local.yml`:
 
 * OPTIONAL: set `SENTRY_DSN` to point to jamdb sentry project
-* If using production OSF for authentication:
-  * MANDATORY: set `OSF.OSF_URL` to `https://osf.io`
-  * MANDATORY: set `OSF.OSF_API_URL` to `https://api.osf.io`
-  * MANDATORY: set `OSF.OSF_ACCOUNTS_URL` to `https://accounts.osf.io`
+* If using staging OSF for authentication:
+  * MANDATORY: set `OSF.OSF_URL` to `https://staging.osf.io`
+  * MANDATORY: set `OSF.OSF_API_URL` to `https://api.staging.osf.io`
+  * MANDATORY: set `OSF.OSF_ACCOUNTS_URL` to `https://accounts.staging.osf.io`
 
 Then run:
 
@@ -187,12 +187,14 @@ $ pushd jam-setup; docker build -t jam_setup:develop .; popd;
 $ docker-compose up jam_setup
 ```
 
+If you get a `401 Unauthorized` error, then it is likely that the token generated in the previous section has expired.  Open another shell in the `jamdb` container, rerun the `jam token ...` command, and update the `jam-setup` config file.
+
 ### 4. Configure and run experimenter
 
 Set experimenter configuration variables in `experimenter/.env`:
 
 * MANDATORY: set `OSF_CLIENT_ID`
-* OPTIONAL: update `OSF_URL` and `OSF_AUTH_URL` if not using OSF for auth.
+* OPTIONAL: update `OSF_URL` and `OSF_AUTH_URL` if not using production OSF for auth.
 * MANDATORY: set `JAMDB_URL` to point to jamdb instance. Default value is for local development.
 * OPTIONAL: set `SENTRY_DSN` to point to the experimenter sentry project.
 
@@ -214,7 +216,7 @@ $ docker-compose logs -f --tail 1000 experimenter
 
 ### 5. Login to experimenter and set up ISP experiment
 
-Go to `http://localhost:4212/` or the configured experimenter url in a browser.  Login as the designated superuser via the OSF auth provider. Select the `isp` namespace. Create a new experiment named "ISP". Click "Build Experiment" to edit the schema and replace the default with:
+Once the experimenter service is running (you should see the text "Build successful" in the docker logs), go to `http://localhost:4212/` or the configured experimenter url in a browser.  Login as the superuser designated by the `ADMIN_GUID` config variable in `jam-setup` via the OSF auth provider. Select the `isp` namespace. Create a new experiment named "ISP". Click "Build Experiment" to edit the schema and replace the default with:
 
 ```
 {
@@ -294,6 +296,8 @@ Template config files for each service live in the `config/` directory.
 The template config file for jamdb is `config/jamdb/jam/settings/local.yml`.  It should be copied to `jamdb/jam/settings/`. Values set in this file will override those set in `jamdb/jam/settings/defaults.yml`.
 
 ```
+## At least one value must be uncommented for jam to start.
+
 # DEBUG: false
 
 # # SERVER SETTINGS
@@ -319,7 +323,7 @@ The template config file for jamdb is `config/jamdb/jam/settings/local.yml`.  It
 # ELASTICSEARCH:
 #   USE: true
 #   TIMEOUT: 30
-#   URI: https://192.168.168.167:9200/
+#   URI: http://192.168.168.167:9200/
 
 # NAMESPACE_BACKENDS:
 #   state: mongo
@@ -340,10 +344,10 @@ The template config file for jamdb is `config/jamdb/jam/settings/local.yml`.  It
 
 # MAX_PAGE_SIZE: 500
 
-# OSF:
-#   URL: https://staging.osf.io
-#   API_URL: https://api.staging.osf.io
-#   ACCOUNTS_URL: https://accounts.staging.osf.io
+OSF:
+  URL: https://osf.io
+  API_URL: https://api.osf.io
+  ACCOUNTS_URL: https://accounts.osf.io
 ```
 
 ### jam-setup
@@ -353,9 +357,9 @@ The template config file for jam-setup is `config/jam-setup/config/local.yml`.  
 ```
 COLLECTIONS_PATH: ./collections.js
 NAMESPACE: isp
-JAM_TOKEN: CHANGEME
 JAM_URL: http://192.168.168.167:4211
-ADMIN_GUID: CHANGME
+JAM_TOKEN: CHANGEME
+ADMIN_GUID: CHANGEME
 ```
 
 ### experimenter
@@ -364,17 +368,21 @@ The template config file for experimenter is `config/experimenter/.env`.  It sho
 
 ```
 # Auth configuration
-OSF_CLIENT_ID=<oauth-client-id>
+OSF_CLIENT_ID=<developer application id>
 OSF_SCOPE=osf.users.profile_read
-OSF_URL=https://osf.io
-OSF_AUTH_URL=https://accouts.osf.io
+OSF_URL=http://osf.io
+OSF_AUTH_URL=http://accounts.osf.io
 
 # Datastore configuration
-JAMDB_URL=http://localhost:4211/
-JAMDB_NAMESPACE=???
+JAMDB_URL=http://192.168.168.167:4211
+JAMDB_NAMESPACE=
 
 # Error logging
 SENTRY_DSN=https://foo@sentry.io/project-id
+
+# These are not used by ISP+Experimenter, but will fail if not set.
+WOWZA_ASP="{}"
+WOWZA_PHP="{}"
 ```
 
 ### isp
@@ -382,8 +390,8 @@ SENTRY_DSN=https://foo@sentry.io/project-id
 The template config file for experimenter is `config/isp/.env`.  It should be copied to `isp/`.  Experimenter **will not** work unless this file is present.
 
 ```
-JAMDB_URL=http://localhost:4211
-EXPERIMENT_ID=<experiment-uuid>
+JAMDB_URL=http://192.168.168.167:4211
+EXPERIMENT_ID=<experiment-id>
 USE_UNRELEASED_TRANSLATIONS=false
 SENTRY_DSN=https://foo@sentry.io/project-id
 ```
