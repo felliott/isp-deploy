@@ -77,6 +77,8 @@ Translations are stored in the [`/app/locales/`](https://github.com/CenterForOpe
 
 The quickest way to set up the environment is to run the install.sh script provided in the [isp-deploy](https://github.com/felliott/isp-deploy) repo.  This script will:
 
+_Not really true.  Actually there are a few manual steps to run between the coded steps_
+
 1. checkout the submodules for the constituent projects
 2. build docker images for each project
 3. copy over the config files from the `config` directory to their appropriate locations
@@ -134,6 +136,7 @@ $ cd isp-deploy
 $ git submodule init
 $ git submodule update
 $ cp config/jamdb/jam/settings/local.yml jamdb/jam/settings/
+# not quite ready to configure these, but docker will complain if they don't exist
 $ cp config/jam-setup/config/local.yml jam-setup/config/
 $ cp config/experimenter/.env experimenter/.env
 $ cp config/isp/.env isp/.env
@@ -196,7 +199,11 @@ Set experimenter configuration variables in `experimenter/.env`:
 Then run:
 
 ```
-$ pushd experimenter; docker build -t experimenter:develop .; popd;
+$ pushd experimenter
+$ git submodule init
+$ git submodule update
+$ docker build -t experimenter:develop .
+$ popd
 
 # Start experimenter service
 $ docker-compose up -d experimenter
@@ -207,7 +214,7 @@ $ docker-compose logs -f --tail 1000 experimenter
 
 ### 5. Login to experimenter and set up ISP experiment
 
-Go to `http://localhost:4212/` or the configured experimenter url in a browser.  Login as the designated superuser via the OSF auth provider. Select the `isp` namespace. Create a new experiment named "ISP". Edit the schema and replace the default with:
+Go to `http://localhost:4212/` or the configured experimenter url in a browser.  Login as the designated superuser via the OSF auth provider. Select the `isp` namespace. Create a new experiment named "ISP". Click "Build Experiment" to edit the schema and replace the default with:
 
 ```
 {
@@ -238,21 +245,25 @@ Go to `http://localhost:4212/` or the configured experimenter url in a browser. 
 }
 ```
 
-Click the "save" button, then go back to the experiment page, and click "start experiment". Note the experiment id in the url, this will be needed to configure ISP in the next step.
+Click the "Save" button, then go back to the experiment page, and click "Start Experiment Now". Note the experiment id in the url (it will be final part of the path), this will be needed to configure ISP in the next step.
 
 ### 6. Configure and run ISP:
 
 Set ISP configuration variables in `isp/.env`:
 
 * MANDATORY: set `EXPERIMENT_ID`: this should be the experiment id noted above.
-* MANDATORY: update `USE_UNRELEASED_TRANSLATIONS` to `true` if the environment is *not* production.
+* MANDATORY: update `USE_UNRELEASED_TRANSLATIONS` to `true` if the environment is staging (*not* production).
 * MANDATORY: set `JAMDB_URL` to point to jamdb instance. Default value is for local development.
-* OPTIONAL: set `SENTRY_DSN` to point to the experimenter sentry project.
+* OPTIONAL: set `SENTRY_DSN` to point to the ISP Sentry project.
 
 Then run:
 
 ```
-$ pushd isp; docker build -t isp:develop .; popd;
+$ pushd isp
+$ git submodule init
+$ git submodule update
+$ docker build -t isp:develop .
+$ popd
 $ docker-compose up -d isp  # starts the ISP service
 
 # check ISP logs to make sure it started correctly
@@ -264,7 +275,12 @@ Go to `http://localhost:4213/` or the configured ISP url in a browser to verify.
 
 ### 7. Running a test experiment
 
-Login to experimenter, and "select create new accounts".
+* Login to experimenter, then select "Create users" from the sidebar.
+  * Update the "Batch size" input with the number of participant ids to create
+  * OPTIONAL: add a tag to identify admin or other group of users
+  * Input the Study ID to connect the participant ids to.  The Study ID should correspond to a key in the [consent text object](https://github.com/CenterForOpenScience/isp/blob/1.0.26/app/components/isp-consent-form/consentText.js#L17) that maps study IDs to consent form translations.
+  * Experimenter will initiate a download of participant ids in a file called `participants.csv`.  Save this file.  Each line contains a participant ID and the study ID, separated by a comma.
+* To test ISP, take one of the participant ids from `participants.csv` and input it as the "Participant ID".  Put the Study ID as the "Study ID".
 
 
 ## Service configuration
